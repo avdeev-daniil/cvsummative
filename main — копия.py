@@ -1,30 +1,19 @@
-import cv2
-import mediapipe as mp
-import numpy as np
-
-#создаем детектор
-handsDetector = mp.solutions.hands.Hands()
-cap = cv2.VideoCapture(0)
-while(cap.isOpened()):
-    ret, frame = cap.read()
-    a = cv2.imread('europa.png')
-    if cv2.waitKey(1) & 0xFF == ord('q') or not ret:
-        break
-    flipped = np.fliplr(frame)
-    # переводим его в формат RGB для распознавания
-    flippedRGB = cv2.cvtColor(flipped, cv2.COLOR_BGR2RGB)
-    # Распознаем
-    results = handsDetector.process(flippedRGB)
-    # Рисуем распознанное, если распозналось
-    if results.multi_hand_landmarks is not None:
-        # нас интересует только подушечка указательного пальца (индекс 8)
-        # нужно умножить координаты а размеры картинки
-        x_tip = int(results.multi_hand_landmarks[0].landmark[8].x *
-                flippedRGB.shape[1])
-        y_tip = int(results.multi_hand_landmarks[0].landmark[8].y *
-                flippedRGB.shape[0])
-        cv2.circle(a,(x_tip, y_tip), 10, (255, 0, 0), -1)
-    # переводим в BGR и показываем результа
-    cv2.imshow('image', a)
-# освобождаем ресурсы
-handsDetector.close()
+goal = [[2, 249, 226, 138], [3, 55, 37, 156], [4, 255, 255, 255], [5, 34, 175, 18], [6, 152, 190, 171], [9, 2, 119, 11], [11, 172, 2, 23], [12, 184, 129, 1], [14, 139, 46, 67], [15, 2, 242, 242], [16, 2, 119, 11], [17, 48, 68, 254], [19, 73, 170, 241], [20, 236, 236, 236], [21, 64, 208, 234], [22, 253, 213, 74], [24, 252, 75, 75], [25, 172, 2, 23], [26, 8, 171, 193], [27, 74, 138, 203], [28, 100, 100, 100], [29, 93, 116, 153], [30, 100, 100, 100], [31, 139, 102, 214], [32, 119, 219, 219], [33, 93, 116, 153], [34, 186, 77, 75], [35, 175, 135, 50], [36, 247, 132, 36], [37, 143, 79, 149], [38, 71, 71, 111], [39, 24, 13, 125], [42, 93, 116, 153], [44, 93, 56, 201], [45, 90, 159, 80], [47, 93, 116, 153], [49, 93, 56, 201], [51, 93, 116, 153]]
+countries = {'greece': [249, 226, 138, 0], 'albania': [55, 37, 156, 1], 'bulgaria': [34, 175, 18, 3], 'turkey': [152, 190, 171, 4], 'italy': [2, 119, 11, 5, 10], 'france': [172, 2, 23, 6, 17], 'portugal': [184, 129, 1, 7], 'jugoslavia': [139, 46, 67, 8], 'spain': [2, 242, 242, 9], 'switzerland': [48, 68, 254, 11], 'hungary': [73, 170, 241, 12], 'austria': [236, 236, 236, 13], 'romania': [64, 208, 234, 14], 'luxembourg': [253, 213, 74, 15], 'czechoslovakia': [252, 75, 75, 16], 'belgium': [8, 171, 193, 18], 'hollandia': [74, 138, 203, 19], 'germany': [100, 100, 100, 20, 22], 'denmark': [93, 116, 153, 21, 25, 32, 35, 37], 'poland': [214, 102, 139, 23], 'litva': [119, 219, 219, 24], 'latvia': [186, 77, 75, 26], 'estonia': [175, 135, 50, 27], 'sweden': [247, 132, 36, 28], 'finland': [143, 79, 149, 29], 'norway': [71, 71, 111, 30], 'soviet': [24, 13, 125, 31], 'britain': [93, 56, 201, 33, 36], 'ireland': [90, 159, 80, 34]}
+print('[', end = '')
+for key, value in countries.items():
+    for i in range(3, len(value)):
+        goal[value[i]].append(key)
+        print('[', end = '')
+        for j in range(len(goal[value[i]])):
+            if j + 1 != len(goal[value[i]]):
+                if goal[value[i]][j] == str(goal[value[i]][j]):
+                    print("'" + str(goal[value[i]][j]) + "', ", end = '')
+                else:
+                    print(str(goal[value[i]][j]) + ', ', end='')
+            else:
+                if goal[value[i]][j] == str(goal[value[i]][j]):
+                    print("'" + str(goal[value[i]][j]) + "'], ", end = '')
+                else:
+                    print(str(goal[value[i]][j]) + '], ', end='')
+print(']')
