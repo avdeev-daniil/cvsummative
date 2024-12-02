@@ -6,7 +6,16 @@ class Point:
         self.x = x
         self.y = y
 
+def get_points(landmark, shape):
+    points = []
+    for mark in landmark:
+        points.append([mark.x * shape[1], mark.y * shape[0]])
+    return np.array(points, dtype=np.int32)
 
+def palm_size(landmark, shape):
+    x1, y1 = landmark[0].x * shape[1], landmark[0].y * shape[0]
+    x2, y2 = landmark[5].x * shape[1], landmark[5].y * shape[0]
+    return ((x1 - x2)**2 + (y1 - y2) **2) **.5
 # Checking if a point is inside a polygon
 def point_in_polygon(point, polygon):
     num_vertices = len(polygon)
@@ -43,8 +52,9 @@ def point_in_polygon(point, polygon):
 #создаем детектор
 handsDetector = mp.solutions.hands.Hands()
 cap = cv2.VideoCapture(0)
-goal = [[2, 249, 226, 138], [3, 55, 37, 156], [4, 255, 255, 255], [5, 34, 175, 18], [6, 152, 190, 171], [9, 2, 119, 11], [11, 172, 2, 23], [12, 184, 129, 1], [14, 139, 46, 67], [15, 2, 242, 242], [16, 2, 119, 11], [17, 48, 68, 254], [19, 73, 170, 241], [20, 236, 236, 236], [21, 64, 208, 234], [22, 253, 213, 74], [24, 252, 75, 75], [25, 172, 2, 23], [26, 8, 171, 193], [27, 74, 138, 203], [28, 100, 100, 100], [29, 93, 116, 153], [30, 100, 100, 100], [31, 139, 102, 214], [32, 119, 219, 219], [33, 93, 116, 153], [34, 186, 77, 75], [35, 175, 135, 50], [36, 247, 132, 36], [37, 143, 79, 149], [38, 71, 71, 111], [39, 24, 13, 125], [42, 93, 116, 153], [44, 93, 56, 201], [45, 90, 159, 80], [47, 93, 116, 153], [49, 93, 56, 201], [51, 93, 116, 153]]
-countries = {'greece': [249, 226, 138, 0], 'albania': [55, 37, 156, 1], 'bulgaria': [34, 175, 18, 3], 'turkey': [152, 190, 171, 4], 'italy': [2, 119, 11, 5, 10], 'france': [172, 2, 23, 6, 17], 'portugal': [184, 129, 1, 7], 'jugoslavia': [139, 46, 67, 8], 'spain': [2, 242, 242, 9], 'switzerland': [48, 68, 254, 11], 'hungary': [73, 170, 241, 12], 'austria': [236, 236, 236, 13], 'romania': [64, 208, 234, 14], 'luxembourg': [253, 213, 74, 15], 'czechoslovakia': [252, 75, 75, 16], 'belgium': [8, 171, 193, 18], 'hollandia': [74, 138, 203, 19], 'germany': [100, 100, 100, 20, 22], 'denmark': [93, 116, 153, 21, 25, 32, 35, 37], 'poland': [214, 102, 139, 23], 'litva': [119, 219, 219, 24], 'latvia': [186, 77, 75, 26], 'estonia': [175, 135, 50, 27], 'sweden': [247, 132, 36, 28], 'finland': [143, 79, 149, 29], 'norway': [71, 71, 111, 30], 'soviet': [24, 13, 125, 31], 'britain': [93, 56, 201, 33, 36], 'ireland': [90, 159, 80, 34]}
+#goal = [2, 3, 4, 5, 6, 9, 11, 12, 14, 15, 16, 17, 19, 20, 21, 22, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 42, 44, 45, 47, 49, 51]
+goal = [2, 3, 4, 5, 6, 9, 11, 12, 14, 15, 16, 17, 19, 20, 21, 22, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 42, 44, 45, 47, 49, 51]
+countries = {'greece': [249, 226, 138, 0], 'albania': [55, 37, 156, 1], 'bulgaria': [34, 175, 18, 3], 'turkey': [152, 190, 171, 4], 'italy': [2, 119, 11, 5, 10], 'france': [172, 2, 23, 6, 17], 'portugal': [184, 129, 1, 7], 'jugoslavia': [139, 46, 67, 8], 'spain': [2, 242, 242, 9], 'switzerland': [48, 68, 254, 11], 'hungary': [73, 170, 241, 12], 'austria': [236, 236, 236, 13], 'romania': [64, 208, 234, 14], 'luxembourg': [253, 213, 74, 15], 'czechoslovakia': [252, 75, 75, 16], 'belgium': [8, 171, 193, 18], 'hollandia': [74, 138, 203, 19], 'germany': [100, 100, 100, 20, 22], 'denmark': [93, 116, 153, 21, 25, 32, 35, 37], 'poland': [201, 174, 255, 23], 'litva': [119, 219, 219, 24], 'latvia': [186, 77, 75, 26], 'estonia': [175, 135, 50, 27], 'sweden': [247, 132, 36, 28], 'finland': [143, 79, 149, 29], 'norway': [71, 71, 111, 30], 'soviet': [24, 13, 125, 31], 'britain': [93, 56, 201, 33, 36], 'ireland': [90, 159, 80, 34]}
 polygons = [([Point(123, 233), Point(183, 219), Point(218, 247), Point(200, 273), Point(200, 305), Point(164, 312), Point(127, 294), Point(142, 264)], 'france'),
             ([Point(215, 315), Point(220, 322), Point(208, 323), Point(216, 315)], 'france'),
             ([Point(62, 293), Point(81, 299), Point(52, 350), Point(38, 345), Point(39, 326)], 'portugal'),
@@ -76,7 +86,22 @@ polygons = [([Point(123, 233), Point(183, 219), Point(218, 247), Point(200, 273)
             ([Point(342, 310), Point(343, 322), Point(340, 329), Point(346, 337), Point(356, 333), Point(368, 334), Point(385, 325), Point(387, 315), Point(394, 307), Point(379, 303), Point(366, 309)], 'bulgaria'),
             ([Point(343, 308), Point(367, 309), Point(380, 302), Point(391, 304), Point(391, 296), Point(397, 291), Point(402, 272), Point(393, 256), Point(380, 249), Point(370, 248), Point(367, 245), Point(359, 245), Point(351, 257), Point(341, 257), Point(321, 284), Point(331, 297), Point(338, 300)], 'romania'),
             ([Point(307, 247), Point(328, 247), Point(352, 253), Point(360, 246), Point(368, 235), Point(376, 218), Point(369, 208), Point(376, 170), Point(366, 167), Point(355, 191), Point(347, 192), Point(339, 207), Point(315, 207), Point(304, 201), Point(308, 191), Point(301, 186), Point(296, 193), Point(296, 203), Point(285, 212), Point(299, 222), Point(307, 232)], 'poland'),
-            ([Point(355, 191), Point(366, 167), Point(361, 163), Point(350, 162), Point(332, 164), Point(320, 173), Point(321, 179), Point(346, 183), Point(348, 190)], 'litva')]
+            ([Point(355, 191), Point(366, 167), Point(361, 163), Point(350, 162), Point(332, 164), Point(320, 173), Point(321, 179), Point(346, 183), Point(348, 190)], 'litva'),
+            ([Point(366, 166), Point(358, 161), Point(332, 163), Point(321, 171), Point(320, 160), Point(326, 150), Point(335, 156), Point(343, 156), Point(344, 146), Point(366, 150), Point(374, 166)], 'latvia'),
+            ([Point(366, 150), Point(343, 146), Point(334, 138), Point(346, 130), Point(367, 130), Point(361, 138), Point(367, 145)], 'estonia'),
+            ([Point(337, 129), Point(322, 116), Point(322, 95), Point(337, 71), Point(330, 58), Point(328, 37), Point(314, 28), Point(317, 24), Point(329, 29), Point(341, 12), Point(350, 21), Point(362, 12), Point(349, 31), Point(360, 36), Point(329, 29), Point(364, 53), Point(329, 29), Point(358, 65), Point(368, 75), Point(368, 80), Point(390, 92), Point(384, 105),Point(329, 29), Point(378, 101), Point(373, 107), Point(373, 120), Point(361, 116)], 'finland'),
+            ([Point(273, 182), Point(290, 169), Point(305, 137), Point(303, 99), Point(322, 75), Point(329, 58), Point(326, 37), Point(314, 30), Point(300, 38), Point(283, 68), Point(271, 94), Point(269, 121), Point(259, 143), Point(266, 158), Point(266, 173), Point(272, 180)], 'sweden'),
+            ([Point(262, 135), Point(235, 146), Point(223, 135), Point(229, 98), Point(280, 49), Point(327, 3), Point(353, 7), Point(354, 19), Point(350, 21), Point(341, 11), Point(328, 30), Point(315, 24), Point(297, 42), Point(280, 72), Point(270, 95), Point(266, 131)], 'norway')]
+prev_fist = False
+event = 0
+count = 0
+nowcountry = ''
+howlong = 0
+choose = False
+choosen = []
+choosencountry = ''
+war = ''
+choosenc = ''
 while(cap.isOpened()):
     ret, frame = cap.read()
     a = cv2.imread('europa.png')
@@ -84,8 +109,9 @@ while(cap.isOpened()):
     s = cv2.cvtColor(s, cv2.COLOR_BGR2GRAY)
     ret, threshold_image = cv2.threshold(s, 1, 100, cv2.THRESH_BINARY_INV)
     contours, hierarchy = cv2.findContours(s, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    for i in goal:
-        cv2.fillPoly(a, pts=[contours[i[0]]], color=(i[1], i[2], i[3]))
+    for key, value in countries.items():
+        for i in range(3, len(value)):
+            cv2.fillPoly(a, pts=[contours[goal[value[i]]]], color=(value[0], value[1], value[2]))
     # переводим в BGR и показываем результа
     if cv2.waitKey(1) & 0xFF == ord('q') or not ret:
         break
@@ -96,17 +122,76 @@ while(cap.isOpened()):
     results = handsDetector.process(flippedRGB)
     # Рисуем распознанное, если распозналось
     if results.multi_hand_landmarks is not None:
-        # нас интересует только подушечка указательного пальца (индекс 8)
-        # нужно умножить координаты а размеры картинки
-        x_tip = int(results.multi_hand_landmarks[0].landmark[8].x *
-                flippedRGB.shape[1])
-        y_tip = int(results.multi_hand_landmarks[0].landmark[8].y *
-                flippedRGB.shape[0])
-        cv2.circle(a,(x_tip, y_tip), 10, (255, 0, 0), -1)
-        for polygon in polygons:
-            if point_in_polygon(Point(x_tip, y_tip), polygon[0]):
-                print(polygon[1])
-    cv2.drawContours(a, contours, -1, (0, 0, 0),   1)
+        if war == '':
+            # нас интересует только подушечка указательного пальца (индекс 8)
+            # нужно умножить координаты а размеры картинки
+            x_tip = int(results.multi_hand_landmarks[0].landmark[8].x *
+                    flippedRGB.shape[1])
+            y_tip = int(results.multi_hand_landmarks[0].landmark[8].y *
+                    flippedRGB.shape[0])
+            cv2.circle(a,(x_tip, y_tip), 10, (255, 0, 0), -1)
+            for polygon in polygons:
+                if point_in_polygon(Point(x_tip, y_tip), polygon[0]):
+                    if polygon[1] != nowcountry:
+                        howlong = 0
+                        nowcountry = polygon[1]
+                    elif howlong == 10:
+                        choose = True
+                        choosen = countries[nowcountry][3:]
+                        choosenc = polygon[1]
+                        event = 1
+                        howlong = 0
+                    else:
+                        howlong += 1
+        if event == 1:
+            (x, y), r = cv2.minEnclosingCircle(get_points(results.multi_hand_landmarks[0].landmark, flippedRGB.shape))
+            ws = palm_size(results.multi_hand_landmarks[0].landmark, flippedRGB.shape)
+            if 2 * r / ws > 1.3:
+                cv2.circle(flippedRGB, (int(x), int(y)), int(r), (0, 0, 255), 2)
+                # кулак разжат
+                prev_fist = False
+            else:
+                cv2.circle(flippedRGB, (int(x), int(y)), int(r), (0, 255, 0), 2)
+                if not prev_fist:
+                    # произошло сжимание
+                    if choosencountry == '':
+                        choosencountry = choosenc
+                        print('You choose country')
+                    else:
+                        if choosenc != choosencountry:
+                            war = choosenc
+                            event = 2
+                            count = 0
+                            print('War')
+                    # Сейчас кулак зажат
+                    prev_fist = True
+        elif event == 2:
+            (x, y), r = cv2.minEnclosingCircle(get_points(results.multi_hand_landmarks[0].landmark, flippedRGB.shape))
+            ws = palm_size(results.multi_hand_landmarks[0].landmark, flippedRGB.shape)
+            if 2 * r / ws > 1.3:
+                cv2.circle(flippedRGB, (int(x), int(y)), int(r), (0, 0, 255), 2)
+                # кулак разжат
+                prev_fist = False
+            else:
+                cv2.circle(flippedRGB, (int(x), int(y)), int(r), (0, 255, 0), 2)
+                if not prev_fist:
+                    # произошло сжимание
+                    count += 1
+                    # Сейчас кулак зажат
+                    prev_fist = True
+                    if count == 3:
+                        for k in range(3, len(countries[war])):
+                            countries[choosencountry].append(countries[war][k])
+                        countries[war] = countries[war][:3]
+                        for u in range(len(polygons)):
+                            if polygons[u][1] == war:
+                                polygons[u] = (polygons[u][0], choosencountry)
+                        war = ''
+    for j in goal:
+        if j not in choosen:
+            cv2.drawContours(a, contours, j, (0, 0, 0),   1)
+    for i in choosen:
+        cv2.drawContours(a, contours, goal[i], (255, 255, 255), 1)
     cv2.imshow('image', a)
 # освобождаем ресурсы
 handsDetector.close()
