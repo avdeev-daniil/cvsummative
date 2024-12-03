@@ -179,7 +179,7 @@ while(cap.isOpened()):
                     count += 1
                     # Сейчас кулак зажат
                     prev_fist = True
-                    if count == 3:
+                    if count == 5:
                         for k in range(3, len(countries[war])):
                             countries[choosencountry].append(countries[war][k])
                         countries[war] = countries[war][:3]
