@@ -1,6 +1,7 @@
 import cv2
 import mediapipe as mp
 import numpy as np
+import time
 class Point:
     def __init__(self, x, y):
         self.x = x
@@ -54,6 +55,7 @@ handsDetector = mp.solutions.hands.Hands()
 cap = cv2.VideoCapture(0)
 #goal = [2, 3, 4, 5, 6, 9, 11, 12, 14, 15, 16, 17, 19, 20, 21, 22, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 42, 44, 45, 47, 49, 51]
 goal = [2, 3, 4, 5, 6, 9, 11, 12, 14, 15, 16, 17, 19, 20, 21, 22, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 42, 44, 45, 47, 49, 51]
+gigasigma = [4, 2, 1, 4, 6, 2, 2, 4, 6, 8, 9, 5, 5, 3, 7, 1, 7, 10, 3, 2, 20, 1, 5, 10, 2, 1, 2, 2, 5, 6, 4, 25, 1, 15, 3, 1, 1, 1]
 countries = {'greece': [249, 226, 138, 0], 'albania': [55, 37, 156, 1], 'bulgaria': [34, 175, 18, 3], 'turkey': [152, 190, 171, 4], 'italy': [2, 119, 11, 5, 10], 'france': [172, 2, 23, 6, 17], 'portugal': [184, 129, 1, 7], 'jugoslavia': [139, 46, 67, 8], 'spain': [2, 242, 242, 9], 'switzerland': [48, 68, 254, 11], 'hungary': [73, 170, 241, 12], 'austria': [236, 236, 236, 13], 'romania': [64, 208, 234, 14], 'luxembourg': [253, 213, 74, 15], 'czechoslovakia': [252, 75, 75, 16], 'belgium': [8, 171, 193, 18], 'hollandia': [74, 138, 203, 19], 'germany': [100, 100, 100, 20, 22], 'denmark': [93, 116, 153, 21, 25, 32, 35, 37], 'poland': [201, 174, 255, 23], 'litva': [119, 219, 219, 24], 'latvia': [186, 77, 75, 26], 'estonia': [175, 135, 50, 27], 'sweden': [247, 132, 36, 28], 'finland': [143, 79, 149, 29], 'norway': [71, 71, 111, 30], 'soviet': [24, 13, 125, 31], 'britain': [93, 56, 201, 33, 36], 'ireland': [90, 159, 80, 34]}
 polygons = [([Point(123, 233), Point(183, 219), Point(218, 247), Point(200, 273), Point(200, 305), Point(164, 312), Point(127, 294), Point(142, 264)], 'france'),
             ([Point(215, 315), Point(220, 322), Point(208, 323), Point(216, 315)], 'france'),
@@ -99,9 +101,13 @@ nowcountry = ''
 howlong = 0
 choose = False
 choosen = []
+warcountry = 0
 choosencountry = ''
 war = ''
 choosenc = ''
+cj = 0
+t1 = 0
+t = 0
 while(cap.isOpened()):
     ret, frame = cap.read()
     a = cv2.imread('europa.png')
@@ -120,7 +126,24 @@ while(cap.isOpened()):
     flippedRGB = cv2.cvtColor(flipped, cv2.COLOR_BGR2RGB)
     # Распознаем
     results = handsDetector.process(flippedRGB)
+    if war != '':
+        if cj < (t1 - t):
+            for k in range(3, len(countries[choosencountry])):
+                countries[war].append(countries[choosencountry][k])
+                cj -= gigasigma[countries[choosencountry][k]]
+            countries[choosencountry] = countries[choosencountry][:3]
+            for u in range(len(polygons)):
+                if polygons[u][1] == choosencountry:
+                    polygons[u] = (polygons[u][0], war)
+            war = ''
+            warcountry = 0
+            choosec = ''
+            nowcountry = ''
+            choosen = []
+            event = -1
+            t1 = 0
     # Рисуем распознанное, если распозналось
+    #if event != -1:
     if results.multi_hand_landmarks is not None:
         if war == '':
             # нас интересует только подушечка указательного пальца (индекс 8)
@@ -156,16 +179,22 @@ while(cap.isOpened()):
                     # произошло сжимание
                     if choosencountry == '':
                         choosencountry = choosenc
+                        for k in range(3, len(countries[choosencountry])):
+                            cj += gigasigma[countries[choosencountry][k]]
                         print('You choose country')
                     else:
                         if choosenc != choosencountry:
                             war = choosenc
                             event = 2
                             count = 0
+                            for k in range(3, len(countries[war])):
+                                warcountry += gigasigma[countries[war][k]]
                             print('War')
+                            t = time.time()
                     # Сейчас кулак зажат
                     prev_fist = True
         elif event == 2:
+            t1 = time.time()
             (x, y), r = cv2.minEnclosingCircle(get_points(results.multi_hand_landmarks[0].landmark, flippedRGB.shape))
             ws = palm_size(results.multi_hand_landmarks[0].landmark, flippedRGB.shape)
             if 2 * r / ws > 1.3:
@@ -179,19 +208,29 @@ while(cap.isOpened()):
                     count += 1
                     # Сейчас кулак зажат
                     prev_fist = True
-                    if count == 5:
+                    if count >= warcountry - cj // 10:
                         for k in range(3, len(countries[war])):
                             countries[choosencountry].append(countries[war][k])
+                            cj += gigasigma[countries[war][k]]
                         countries[war] = countries[war][:3]
                         for u in range(len(polygons)):
                             if polygons[u][1] == war:
                                 polygons[u] = (polygons[u][0], choosencountry)
                         war = ''
+                        warcountry = 0
+                        choosec = ''
+                        nowcountry = ''
+                        choosen = []
+                        event = 0
+                        t1 = 0
     for j in goal:
         if j not in choosen:
             cv2.drawContours(a, contours, j, (0, 0, 0),   1)
     for i in choosen:
         cv2.drawContours(a, contours, goal[i], (255, 255, 255), 1)
     cv2.imshow('image', a)
+    #else:
+        #font = cv2.FONT_HERSHEY_SIMPLEX
+        #cv2.putText(a, 'You lose', (10, 500), font, 4, (255, 255, 255), 2, cv2.LINE_AA)
 # освобождаем ресурсы
 handsDetector.close()
